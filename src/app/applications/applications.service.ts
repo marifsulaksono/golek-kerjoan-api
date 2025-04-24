@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Application } from './entities/application.entity';
 import { DataSource, Repository } from 'typeorm';
@@ -7,12 +7,22 @@ import {
   UpdateApplicationDto,
 } from './dto/application.dto';
 import { ApplicationLog } from './entities/application_logs.entity';
+import { User } from '../users/entities/user.entity';
+import { sendEmail } from 'src/shared/service/mail';
+import { Job } from '../jobs/entities/job.entity';
 
 @Injectable()
 export class ApplicationsService {
   constructor(
     @InjectRepository(Application)
     private readonly applicationRepository: Repository<Application>,
+
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+
+    @InjectRepository(Job)
+    private readonly jobRepository: Repository<Job>,
+
     private readonly dataSource: DataSource,
   ) {}
 
@@ -21,6 +31,14 @@ export class ApplicationsService {
     userId: string,
   ): Promise<Application> {
     return this.dataSource.transaction(async (manager) => {
+      // Cek user
+      const user = await this.userRepository.findOneBy({ id: userId });
+      if (!user) throw new NotFoundException('User not found');
+
+      // Cek job
+      const job = await this.jobRepository.findOneBy({ id: request.job_id });
+      if (!job) throw new NotFoundException('Job not found');
+
       // Simpan Application baru
       const app = new Application();
       app.job_id = request.job_id;
@@ -41,6 +59,14 @@ export class ApplicationsService {
 
       // Update nilai applied pada Job
       await manager.increment('Job', { id: request.job_id }, 'applied', 1);
+
+      // Kirim email ke user
+      await sendEmail(
+        user.email,
+        'Application Submitted',
+        `Hi ${user.name}, your application for job ${job.title} has been submitted.`,
+        `<p>Hi <b>${user.name}</b>,</p><p>Your application for job <code>${job.title}</code> has been successfully submitted.</p>`,
+      );
 
       return savedApp;
     });
