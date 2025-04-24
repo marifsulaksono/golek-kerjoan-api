@@ -9,6 +9,8 @@ Golek Kerjoan API adalah RESTful API yang dibangun menggunakan NestJS, sebuah fr
 - Linting & Formatting: ESLint, Prettier
 - Manajemen Konfigurasi: dotenv (.env)​
 - Authentication: JWT
+- ORM: TypeORM
+- Caching: Redis
 - Database: MySQL
 
 ## 📂 Struktur Direktori
