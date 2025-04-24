@@ -108,13 +108,13 @@ export class ApplicationsService {
       );
     }
 
-    const [users, total] = await queryBuilder
+    const [jobs, total] = await queryBuilder
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
 
     return {
-      list: users,
+      list: jobs,
       total: total,
     };
   }

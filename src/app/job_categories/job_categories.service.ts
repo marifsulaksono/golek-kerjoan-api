@@ -40,13 +40,13 @@ export class JobCategoriesService {
       });
     }
 
-    const [users, total] = await queryBuilder
+    const [jobCategories, total] = await queryBuilder
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
 
     return {
-      list: users,
+      list: jobCategories,
       total: total,
     };
   }

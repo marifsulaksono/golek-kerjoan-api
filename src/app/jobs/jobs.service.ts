@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Job } from './entities/job.entity';
 import { DataSource, Repository } from 'typeorm';
 import { CreateJobDto, UpdateJobDto } from './dto/job.dto';
+import { RedisService } from 'src/shared/service/redis';
 
 @Injectable()
 export class JobsService {
@@ -10,6 +11,7 @@ export class JobsService {
     @InjectRepository(Job)
     private readonly jobRepository: Repository<Job>,
     private readonly dataSource: DataSource,
+    private readonly redisService: RedisService,
   ) {}
 
   create(request: CreateJobDto): Promise<Job> {
@@ -23,6 +25,17 @@ export class JobsService {
   }
 
   async findAll(filter: any = {}, page: number, limit: number) {
+    // Cek data di redis
+    const cacheKey = `jobs:search:${filter.search || ''}:page:${page}:limit:${limit}`;
+    const cached = await this.redisService.get<{ list: any[]; total: number }>(
+      cacheKey,
+    );
+
+    if (cached) {
+      console.log('================>> Data dari redis <<================');
+      return cached;
+    }
+
     const queryBuilder = this.jobRepository
       .createQueryBuilder('job')
       .select([
@@ -49,15 +62,15 @@ export class JobsService {
       });
     }
 
-    const [users, total] = await queryBuilder
+    const [jobs, total] = await queryBuilder
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
 
-    return {
-      list: users,
-      total: total,
-    };
+    const result = { list: jobs, total };
+    const TTL = 60; // set TTL (time to live)
+    await this.redisService.set(cacheKey, result, TTL); // store data ke redis
+    return result;
   }
 
   findOne(id: string): Promise<Job> {
