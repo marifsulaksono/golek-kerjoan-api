@@ -1,16 +1,11 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
-  Patch,
-  Param,
-  Delete,
   HttpCode,
   HttpStatus,
   Ip,
   Res,
-  Request,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/auth.dto';
@@ -50,6 +45,18 @@ export class AuthController {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  @Post('refresh')
+  @HttpCode(200)
+  @Public()
+  async refresh(
+    @Ip() ip: string,
+    @Res() res: Response,
+    @Body('refresh_token') refresh_token: string,
+  ) {
+    const result = await this.authService.refreshToken(refresh_token, ip);
+    this.responseService.success(res, result, 'Token berhasil diperbarui');
   }
 
   @Public()

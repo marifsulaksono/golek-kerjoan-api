@@ -56,8 +56,20 @@ export class UsersService {
     };
   }
 
-  findOne(id: string): Promise<User> {
-    return this.userRepository.findOneBy({ id });
+  async findOne(id: string): Promise<User & { total_applied: number }> {
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoin('user.applications', 'app', 'app.deleted_at IS NULL')
+      .where('user.id = :id', { id })
+      .loadRelationCountAndMap(
+        'user.total_applied',
+        'user.applications',
+        'app',
+        (qb) => qb.andWhere('app.deleted_at IS NULL'),
+      )
+      .getOne();
+
+    return user as User & { total_applied: number };
   }
 
   findOneByEmail(email: string): Promise<User> {

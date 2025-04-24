@@ -72,4 +72,48 @@ export class AuthService {
       },
     };
   }
+
+  async refreshToken(token: string, ip: string): Promise<any> {
+    const payload = await this.jwtService.verifyAsync(token, {
+      secret: process.env.JWT_REFRESH_SECRET,
+    });
+
+    const storedToken = await this.authRepository.findOneBy({
+      user_id: payload.sub,
+      ip_address: ip,
+      token,
+    });
+
+    if (!storedToken) {
+      throw new UnauthorizedException(
+        'Refresh token tidak valid atau tidak ditemukan.',
+      );
+    }
+
+    const user = await this.userService.findOne(payload.sub);
+    if (!user) {
+      throw new UnauthorizedException('User tidak ditemukan.');
+    }
+
+    const newPayload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
+    const newAccessToken = this.jwtService.sign(newPayload, {
+      secret: process.env.JWT_ACCESS_SECRET,
+      expiresIn: '15m',
+    });
+
+    return {
+      access_token: newAccessToken,
+      refresh_token: token,
+      metadata: {
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    };
+  }
 }

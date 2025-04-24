@@ -34,7 +34,6 @@ export class ApplicationsController {
     @Res() res: Response,
   ) {
     const user = req['user'] as { sub: string };
-    console.log(user);
     const data = await this.applicationsService.create(
       ceateApplicationDto,
       user.sub,
