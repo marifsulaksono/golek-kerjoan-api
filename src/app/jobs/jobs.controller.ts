@@ -8,12 +8,13 @@ import {
   Res,
   Query,
   Put,
+  Req,
 } from '@nestjs/common';
 import { JobsService } from './jobs.service';
 import { Metadata, ResponseService } from 'src/shared/service/response';
 import { Public, Roles } from 'src/shared/decorators/public.decorator';
 import { CreateJobDto, UpdateJobDto } from './dto/job.dto';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 
 @Controller('api/v1/jobs')
 export class JobsController {
@@ -35,8 +36,8 @@ export class JobsController {
     const filter = {
       search: query.search,
     };
-    const page: number = query.number || 1;
-    const limit: number = query.limit || 10;
+    const page: number = parseInt(query.page) || 1;
+    const limit: number = parseInt(query.limit) || 10;
 
     const data = await this.jobService.findAll(filter, page, limit);
     const meta: Metadata = {
@@ -66,18 +67,25 @@ export class JobsController {
   @Put(':id')
   @Roles('superadmin,admin')
   async update(
+    @Req() req: Request,
     @Param('id') id: string,
     @Body() updateJobDto: UpdateJobDto,
     @Res() res: Response,
   ) {
-    const job = await this.jobService.update(id, updateJobDto);
+    const user = req['user'] as { sub: string };
+    const job = await this.jobService.update(id, updateJobDto, user.sub);
     this.responseService.success(res, job, 'Job category updated successfully');
   }
 
   @Delete(':id')
   @Roles('superadmin,admin')
-  async remove(@Param('id') id: string, @Res() res: Response) {
-    const deletedJob = await this.jobService.remove(id);
+  async remove(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Res() res: Response,
+  ) {
+    const user = req['user'] as { sub: string };
+    const deletedJob = await this.jobService.remove(id, user.sub);
     if (!deletedJob) {
       this.responseService.failed(res, ['Job not found'], 404);
     } else {

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 
@@ -10,6 +10,7 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(request: CreateUserDto): Promise<User> {
@@ -65,16 +66,31 @@ export class UsersService {
     return queryBuilder.getOne();
   }
 
-  async update(id: string, request: UpdateUserDto): Promise<User | null> {
+  async update(
+    id: string,
+    request: UpdateUserDto,
+    userId: string,
+  ): Promise<User | null> {
     const user = await this.userRepository.findOneBy({ id });
     if (!user) {
       return null;
     }
+    user.updated_by = userId;
     Object.assign(user, request);
     return this.userRepository.save(user);
   }
 
-  remove(id: string): Promise<{ affected?: number }> {
-    return this.userRepository.softDelete(id);
+  async remove(id: string, userId: string) {
+    return await this.dataSource.transaction(async (manager) => {
+      const user = await manager.findOne(User, { where: { id } });
+      if (!user) {
+        return { affected: 0 };
+      }
+
+      user.deleted_by = userId;
+      await manager.save(user);
+      const result = await manager.softDelete(User, id);
+      return { affected: result.affected || 0 };
+    });
   }
 }

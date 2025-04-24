@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JobCategory } from './entities/job_category.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import {
   CreateJobCategoryDto,
   UpdateJobCategoryDto,
@@ -12,6 +12,7 @@ export class JobCategoriesService {
   constructor(
     @InjectRepository(JobCategory)
     private readonly jobCategoryRepository: Repository<JobCategory>,
+    private readonly dataSource: DataSource,
   ) {}
 
   create(request: CreateJobCategoryDto): Promise<JobCategory> {
@@ -57,16 +58,28 @@ export class JobCategoriesService {
   async update(
     id: string,
     request: UpdateJobCategoryDto,
+    userId: string,
   ): Promise<JobCategory | null> {
     const user = await this.jobCategoryRepository.findOneBy({ id });
     if (!user) {
       return null;
     }
+    user.updated_by = userId;
     Object.assign(user, request);
     return this.jobCategoryRepository.save(user);
   }
 
-  remove(id: string): Promise<{ affected?: number }> {
-    return this.jobCategoryRepository.softDelete(id);
+  async remove(id: string, userId: string) {
+    return await this.dataSource.transaction(async (manager) => {
+      const jobCategory = await manager.findOne(JobCategory, { where: { id } });
+      if (!jobCategory) {
+        return { affected: 0 };
+      }
+
+      jobCategory.deleted_by = userId;
+      await manager.save(jobCategory);
+      const result = await manager.softDelete(JobCategory, id);
+      return { affected: result.affected || 0 };
+    });
   }
 }

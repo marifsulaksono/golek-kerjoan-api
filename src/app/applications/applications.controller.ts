@@ -48,8 +48,8 @@ export class ApplicationsController {
     const filter = {
       search: query.search,
     };
-    const page: number = query.number || 1;
-    const limit: number = query.limit || 10;
+    const page: number = parseInt(query.page) || 1;
+    const limit: number = parseInt(query.limit) || 10;
 
     const data = await this.applicationsService.findAll(filter, page, limit);
     const meta: Metadata = {
@@ -78,8 +78,8 @@ export class ApplicationsController {
       search: query.search,
       user_id: user.sub,
     };
-    const page: number = query.number || 1;
-    const limit: number = query.limit || 10;
+    const page: number = parseInt(query.page) || 1;
+    const limit: number = parseInt(query.limit) || 10;
 
     const data = await this.applicationsService.findAll(filter, page, limit);
     const meta: Metadata = {

@@ -127,16 +127,17 @@ export class ApplicationsService {
     });
   }
 
-  async remove(id: string, deletedBy: string) {
+  async remove(id: string, userId: string) {
     return await this.dataSource.transaction(async (manager) => {
       const app = await manager.findOne(Application, { where: { id } });
       if (!app) {
         return { affected: 0 };
       }
 
-      app.deleted_by = deletedBy;
+      app.deleted_by = userId;
       await manager.save(app);
-      await manager.softDelete(Application, id);
+      const result = await manager.softDelete(Application, id);
+      return { affected: result.affected || 0 };
     });
   }
 }

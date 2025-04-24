@@ -8,6 +8,7 @@ import {
   Res,
   Query,
   Put,
+  Req,
 } from '@nestjs/common';
 import { JobCategoriesService } from './job_categories.service';
 import {
@@ -15,7 +16,7 @@ import {
   UpdateJobCategoryDto,
 } from './dto/job_category.dto';
 import { Metadata, ResponseService } from 'src/shared/service/response';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { Public, Roles } from 'src/shared/decorators/public.decorator';
 
 @Controller('api/v1/job-categories')
@@ -41,8 +42,8 @@ export class JobCategoriesController {
     const filter = {
       search: query.search,
     };
-    const page: number = query.number || 1;
-    const limit: number = query.limit || 10;
+    const page: number = parseInt(query.page) || 1;
+    const limit: number = parseInt(query.limit) || 10;
 
     const data = await this.jobCategoriesService.findAll(filter, page, limit);
     const meta: Metadata = {
@@ -72,13 +73,16 @@ export class JobCategoriesController {
   @Put(':id')
   @Roles('superadmin,admin')
   async update(
+    @Req() req: Request,
     @Param('id') id: string,
     @Body() updateJobCategoryDto: UpdateJobCategoryDto,
     @Res() res: Response,
   ) {
+    const user = req['user'] as { sub: string };
     const jobCategory = await this.jobCategoriesService.update(
       id,
       updateJobCategoryDto,
+      user.sub,
     );
     this.responseService.success(
       res,
@@ -89,8 +93,16 @@ export class JobCategoriesController {
 
   @Delete(':id')
   @Roles('superadmin,admin')
-  async remove(@Param('id') id: string, @Res() res: Response) {
-    const deletedJobCategory = await this.jobCategoriesService.remove(id);
+  async remove(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Res() res: Response,
+  ) {
+    const user = req['user'] as { sub: string };
+    const deletedJobCategory = await this.jobCategoriesService.remove(
+      id,
+      user.sub,
+    );
     if (!deletedJobCategory) {
       this.responseService.failed(res, ['Job category not found'], 404);
     } else {

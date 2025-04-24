@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Job } from './entities/job.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { CreateJobDto, UpdateJobDto } from './dto/job.dto';
 
 @Injectable()
@@ -9,6 +9,7 @@ export class JobsService {
   constructor(
     @InjectRepository(Job)
     private readonly jobRepository: Repository<Job>,
+    private readonly dataSource: DataSource,
   ) {}
 
   create(request: CreateJobDto): Promise<Job> {
@@ -68,16 +69,31 @@ export class JobsService {
       .getOne();
   }
 
-  async update(id: string, request: UpdateJobDto): Promise<Job | null> {
+  async update(
+    id: string,
+    request: UpdateJobDto,
+    userId: string,
+  ): Promise<Job | null> {
     const job = await this.jobRepository.findOneBy({ id });
     if (!job) {
       return null;
     }
+    job.updated_by = userId;
     Object.assign(job, request);
     return this.jobRepository.save(job);
   }
 
-  remove(id: string): Promise<{ affected?: number }> {
-    return this.jobRepository.softDelete(id);
+  async remove(id: string, userId: string) {
+    return await this.dataSource.transaction(async (manager) => {
+      const job = await manager.findOne(Job, { where: { id } });
+      if (!job) {
+        return { affected: 0 };
+      }
+
+      job.deleted_by = userId;
+      await manager.save(job);
+      const result = await manager.softDelete(Job, id);
+      return { affected: result.affected || 0 };
+    });
   }
 }
