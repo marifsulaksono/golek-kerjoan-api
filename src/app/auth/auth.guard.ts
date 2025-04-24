@@ -11,7 +11,7 @@ import { config } from 'dotenv';
 config();
 
 import { ResponseService } from 'src/shared/service/response';
-import { IS_PUBLIC_KEY } from './decorators/public.decorator';
+import { IS_PUBLIC_KEY } from '../../shared/decorators/public.decorator';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -79,18 +79,9 @@ export class AuthGuard implements CanActivate {
       if (requiredRoles === '') {
         return true;
       }
-      const accessMap = JSON.parse(user.access);
+
       const requiredPermissions = requiredRoles.split(',');
-
-      for (const permission of requiredPermissions) {
-        const [feature, activity] = permission.split('.');
-
-        if (!accessMap[feature] || !accessMap[feature][activity]) {
-          return false;
-        }
-      }
-
-      return true;
+      return requiredPermissions.includes(user.role);
     } catch (error) {
       return false;
     }

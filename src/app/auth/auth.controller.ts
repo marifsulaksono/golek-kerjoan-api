@@ -16,7 +16,7 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/auth.dto';
 import { ResponseService } from 'src/shared/service/response';
 import { Response } from 'express';
-import { Public } from './decorators/public.decorator';
+import { Public } from '../../shared/decorators/public.decorator';
 import { CreateUserDto } from '../users/dto/user.dto';
 import { UsersService } from '../users/users.service';
 

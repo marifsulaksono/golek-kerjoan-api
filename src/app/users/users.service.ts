@@ -49,14 +49,6 @@ export class UsersService {
       .take(limit)
       .getManyAndCount();
 
-    const links = [];
-    const totalPages = Math.ceil(total / limit);
-
-    for (let i = 1; i <= totalPages; i++) {
-      links.push(
-        `http://localhost:3000/api/v1/users?sort=user_auth.id%20DESC&page=${i}`,
-      );
-    }
     return {
       list: users,
       total: total,
@@ -74,15 +66,10 @@ export class UsersService {
   }
 
   async update(id: string, request: UpdateUserDto): Promise<User | null> {
-    console.log(request);
-    console.log('ID: ', id);
     const user = await this.userRepository.findOneBy({ id });
     if (!user) {
-      console.log('User not found');
       return null;
     }
-    console.log('mendapatkan data user');
-    console.log(user);
     Object.assign(user, request);
     return this.userRepository.save(user);
   }

@@ -5,6 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { config } from 'dotenv';
 import { AuthModule } from './app/auth/auth.module';
 import { UsersModule } from './app/users/users.module';
+import { JobCategoriesModule } from './app/job_categories/job_categories.module';
+import { JobsModule } from './app/jobs/jobs.module';
 
 config();
 
@@ -25,6 +27,8 @@ config();
     }),
     AuthModule,
     UsersModule,
+    JobCategoriesModule,
+    JobsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

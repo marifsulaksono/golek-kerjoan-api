@@ -14,7 +14,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
 import { ResponseService, Metadata } from 'src/shared/service/response';
 import { Response } from 'express';
-import { Roles } from '../auth/decorators/public.decorator';
+import { Roles } from '../../shared/decorators/public.decorator';
 
 @Controller('api/v1/users')
 export class UsersController {
