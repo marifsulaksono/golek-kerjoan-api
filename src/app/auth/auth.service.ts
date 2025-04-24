@@ -116,4 +116,15 @@ export class AuthService {
       },
     };
   }
+
+  async logout(userId: string, ip: string): Promise<void> {
+    const token = await this.authRepository.findOneBy({
+      user_id: userId,
+      ip_address: ip,
+    });
+
+    if (token) {
+      await this.authRepository.remove(token);
+    }
+  }
 }

@@ -6,11 +6,12 @@ import {
   HttpStatus,
   Ip,
   Res,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/auth.dto';
 import { ResponseService } from 'src/shared/service/response';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { Public } from '../../shared/decorators/public.decorator';
 import { CreateUserDto } from '../users/dto/user.dto';
 import { UsersService } from '../users/users.service';
@@ -73,5 +74,14 @@ export class AuthController {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  @Post('logout')
+  @HttpCode(200)
+  async logout(@Ip() ip: string, @Req() req: Request, @Res() res: Response) {
+    const user = req['user'] as { sub: string };
+
+    await this.authService.logout(user.sub, ip);
+    this.responseService.success(res, null, 'Logout berhasil');
   }
 }
