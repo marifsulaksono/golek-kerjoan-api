@@ -1,3 +1,4 @@
+import { Application } from '../../applications/entities/application.entity';
 import { UserRole } from '../../../shared/enum/user-role';
 import {
   BeforeInsert,
@@ -5,6 +6,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -51,6 +53,9 @@ export class User {
 
   @DeleteDateColumn({ name: 'deleted_at' })
   deleted_at: Date;
+
+  @OneToMany(() => Application, (application) => application.user)
+  applications: Application[];
 
   @BeforeInsert()
   private generateUUID() {

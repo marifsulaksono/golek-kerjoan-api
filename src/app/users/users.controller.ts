@@ -76,7 +76,7 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @Roles('superadmin,admin')
+  @Roles('superadmin')
   async remove(@Param('id') id: string, @Res() res: Response) {
     const deletedUser = await this.userService.remove(id);
     if (!deletedUser) {

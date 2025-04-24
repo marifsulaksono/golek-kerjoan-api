@@ -1,4 +1,5 @@
-import { JobCategory } from 'src/app/job_categories/entities/job_category.entity';
+import { Application } from '../../applications/entities/application.entity';
+import { JobCategory } from '../../job_categories/entities/job_category.entity';
 import {
   BeforeInsert,
   Column,
@@ -7,6 +8,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -60,6 +62,9 @@ export class Job {
 
   @DeleteDateColumn({ name: 'deleted_at' })
   deleted_at: Date;
+
+  @OneToMany(() => Application, (application) => application.job)
+  applications: Application[];
 
   @BeforeInsert()
   private generateUUID() {

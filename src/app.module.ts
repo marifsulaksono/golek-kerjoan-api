@@ -7,6 +7,7 @@ import { AuthModule } from './app/auth/auth.module';
 import { UsersModule } from './app/users/users.module';
 import { JobCategoriesModule } from './app/job_categories/job_categories.module';
 import { JobsModule } from './app/jobs/jobs.module';
+import { ApplicationsModule } from './app/applications/applications.module';
 
 config();
 
@@ -29,6 +30,7 @@ config();
     UsersModule,
     JobCategoriesModule,
     JobsModule,
+    ApplicationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -31,6 +31,9 @@ export class CreateTableJobs1745485881556 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query('DROP TABLE IF EXISTS jobs');
+    await queryRunner.query(`DROP INDEX idx_category_id ON jobs;`);
+    await queryRunner.query(`DROP INDEX idx_status ON jobs;`);
+    await queryRunner.query(`DROP INDEX idx_title ON jobs;`);
+    await queryRunner.query(`DROP TABLE IF EXISTS jobs;`);
   }
 }
