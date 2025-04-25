@@ -9,8 +9,7 @@ import {
 } from 'class-validator';
 import { UserRole } from '../../../shared/enum/user-role';
 
-const passwordRegEx =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*d)(?=.*[@$!%*?&])[A-Za-zd@$!%*?&]{8,20}$/;
+const passwordRegEx = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,20}$/;
 
 export class UpdateUserDto {
   @IsNotEmpty()
@@ -18,7 +17,7 @@ export class UpdateUserDto {
   name: string;
 
   @IsNotEmpty()
-  @IsEmail(null, { message: 'Please provide valid Email.' })
+  @IsEmail({}, { message: 'Please provide valid Email.' })
   email: string;
 
   @IsNotEmpty()
